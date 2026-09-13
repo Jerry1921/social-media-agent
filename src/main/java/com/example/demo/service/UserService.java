@@ -25,6 +25,10 @@ public class UserService {
 
     public UserResponse createUser(UserRequest request) {
 
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new RuntimeException("Email is already registered");
+        }
+
         User user = User.builder()
                 .fullName(request.getFullName())
                 .email(request.getEmail())
