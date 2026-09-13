@@ -7,6 +7,8 @@ import com.example.demo.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.example.demo.exception.EmailAlreadyExistsException;
+
 @Service
 public class UserService {
 
@@ -26,7 +28,7 @@ public class UserService {
     public UserResponse createUser(UserRequest request) {
 
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email is already registered");
+            throw new EmailAlreadyExistsException("Email is already registered");
         }
 
         User user = User.builder()
