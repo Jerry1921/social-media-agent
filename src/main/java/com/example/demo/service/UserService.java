@@ -1,5 +1,7 @@
 package com.example.demo.service;
 
+import com.example.demo.dto.LoginRequest;
+import com.example.demo.dto.LoginResponse;
 import com.example.demo.dto.UserRequest;
 import com.example.demo.dto.UserResponse;
 import com.example.demo.entity.User;
@@ -47,6 +49,27 @@ public class UserService {
                 .provider(savedUser.getProvider())
                 .createdAt(savedUser.getCreatedAt())
                 .updatedAt(savedUser.getUpdatedAt())
+                .build();
+    }
+
+    public LoginResponse login(LoginRequest request) {
+
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() ->
+                        new RuntimeException("Invalid email or password")
+                );
+
+        if (!passwordEncoder.matches(
+                request.getPassword(),
+                user.getPassword()
+        )) {
+            throw new RuntimeException("Invalid email or password");
+        }
+
+        return LoginResponse.builder()
+                .id(user.getId())
+                .fullName(user.getFullName())
+                .email(user.getEmail())
                 .build();
     }
 }
