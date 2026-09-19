@@ -9,6 +9,8 @@ import com.example.demo.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.example.demo.security.JwtService;
+
 import com.example.demo.exception.EmailAlreadyExistsException;
 
 @Service
@@ -18,13 +20,17 @@ public class UserService {
 
     private final PasswordEncoder passwordEncoder;
 
+    private final JwtService jwtService;
+
 
     public UserService(
             UserRepository userRepository,
-            PasswordEncoder passwordEncoder
+            PasswordEncoder passwordEncoder,
+            JwtService jwtService
     ) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
     }
 
     public UserResponse createUser(UserRequest request) {
@@ -66,10 +72,13 @@ public class UserService {
             throw new RuntimeException("Invalid email or password");
         }
 
+        String token = jwtService.generateToken(user.getEmail());
+
         return LoginResponse.builder()
                 .id(user.getId())
                 .fullName(user.getFullName())
                 .email(user.getEmail())
+                .token(token)
                 .build();
     }
 }
