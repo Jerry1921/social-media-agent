@@ -10,6 +10,7 @@ public class TestController {
     @GetMapping("/api/test")
     public String test(Authentication authentication) {
 
-        return "Hello " + authentication.getName();
+        return "Hello " + authentication.getName()
+                + " | Authorities: " + authentication.getAuthorities();
     }
 }
