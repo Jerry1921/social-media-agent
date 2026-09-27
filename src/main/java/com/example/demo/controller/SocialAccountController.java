@@ -1,12 +1,13 @@
 package com.example.demo.controller;
 
-import com.example.demo.entity.SocialAccount;
 import com.example.demo.entity.User;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.service.SocialAccountService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
+import com.example.demo.dto.SocialAccountResponse;
 
 import java.util.List;
 
@@ -26,7 +27,7 @@ public class SocialAccountController {
     }
 
     @GetMapping
-    public ResponseEntity<List<SocialAccount>> getMyAccounts(
+    public ResponseEntity<List<SocialAccountResponse>> getMyAccounts(
             Authentication authentication
     ) {
 
@@ -37,7 +38,7 @@ public class SocialAccountController {
                         new RuntimeException("User not found")
                 );
 
-        List<SocialAccount> accounts =
+        List<SocialAccountResponse> accounts =
                 socialAccountService.getUserAccounts(user);
 
         return ResponseEntity.ok(accounts);

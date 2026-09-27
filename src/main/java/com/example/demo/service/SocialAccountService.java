@@ -1,5 +1,6 @@
 package com.example.demo.service;
 
+import com.example.demo.dto.SocialAccountResponse;
 import com.example.demo.entity.SocialAccount;
 import com.example.demo.entity.SocialPlatform;
 import com.example.demo.entity.User;
@@ -19,8 +20,17 @@ public class SocialAccountService {
         this.socialAccountRepository = socialAccountRepository;
     }
 
-    public List<SocialAccount> getUserAccounts(User user) {
-        return socialAccountRepository.findByUser(user);
+    public List<SocialAccountResponse> getUserAccounts(User user) {
+
+        return socialAccountRepository.findByUser(user)
+                .stream()
+                .map(account -> SocialAccountResponse.builder()
+                        .id(account.getId())
+                        .platform(account.getPlatform())
+                        .platformUserId(account.getPlatformUserId())
+                        .connectedAt(account.getConnectedAt())
+                        .build())
+                .toList();
     }
 
     public boolean isPlatformConnected(
