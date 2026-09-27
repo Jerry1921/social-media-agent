@@ -36,7 +36,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/api/auth/**",
-                                "/api/users"
+                                "/api/users",
+                                "/api/oauth/linkedin/callback"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
