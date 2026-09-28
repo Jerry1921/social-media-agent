@@ -80,6 +80,11 @@ public class LinkedInOAuthController {
         LinkedInTokenResponse tokenResponse =
                 linkedInOAuthService.exchangeCodeForToken(code);
 
+        // save to the database
+        linkedInOAuthService.saveLinkedInConnection(
+                userEmail,
+                tokenResponse
+        );
         // 7. Don't return the token to the browser
         return ResponseEntity.ok(
                 "LinkedIn connected successfully for: " + userEmail

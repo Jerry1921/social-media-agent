@@ -1,6 +1,8 @@
 package com.example.demo.service;
 
+import com.example.demo.entity.LinkedInConnection;
 import com.example.demo.entity.OAuthState;
+import com.example.demo.repository.LinkedInConnectionRepository;
 import com.example.demo.repository.OAuthStateRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -32,10 +34,42 @@ public class LinkedInOAuthService {
 
     private final OAuthStateRepository oauthStateRepository;
 
+    //private final OAuthStateRepository oauthStateRepository;
+    private final LinkedInConnectionRepository linkedInConnectionRepository;
+
     public LinkedInOAuthService(
-            OAuthStateRepository oauthStateRepository
+            OAuthStateRepository oauthStateRepository,
+            LinkedInConnectionRepository linkedInConnectionRepository
     ) {
         this.oauthStateRepository = oauthStateRepository;
+        this.linkedInConnectionRepository = linkedInConnectionRepository;
+    }
+
+    public void saveLinkedInConnection(
+            String userEmail,
+            LinkedInTokenResponse tokenResponse
+    ) {
+
+        LocalDateTime expiresAt =
+                LocalDateTime.now()
+                        .plusSeconds(tokenResponse.getExpiresIn());
+
+        LinkedInConnection connection =
+                linkedInConnectionRepository
+                        .findByUserEmail(userEmail)
+                        .orElse(
+                                LinkedInConnection.builder()
+                                        .userEmail(userEmail)
+                                        .createdAt(LocalDateTime.now())
+                                        .build()
+                        );
+
+        connection.setAccessToken(tokenResponse.getAccessToken());
+        connection.setExpiresAt(expiresAt);
+        connection.setScope(tokenResponse.getScope());
+        connection.setUpdatedAt(LocalDateTime.now());
+
+        linkedInConnectionRepository.save(connection);
     }
 
     public String createAuthorizationUrl(String userEmail) {
