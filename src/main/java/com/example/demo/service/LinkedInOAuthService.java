@@ -5,6 +5,14 @@ import com.example.demo.repository.OAuthStateRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.example.demo.dto.LinkedInTokenResponse;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
+
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
@@ -18,6 +26,9 @@ public class LinkedInOAuthService {
 
     @Value("${linkedin.redirect-uri}")
     private String redirectUri;
+
+    @Value("${linkedin.client-secret}")
+    private String clientSecret;
 
     private final OAuthStateRepository oauthStateRepository;
 
@@ -53,6 +64,37 @@ public class LinkedInOAuthService {
         return URLEncoder.encode(
                 value,
                 StandardCharsets.UTF_8
+        );
+    }
+
+    public LinkedInTokenResponse exchangeCodeForToken(String code) {
+
+        String tokenUrl =
+                "https://www.linkedin.com/oauth/v2/accessToken";
+
+        RestTemplate restTemplate = new RestTemplate();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(
+                MediaType.APPLICATION_FORM_URLENCODED
+        );
+
+        MultiValueMap<String, String> body =
+                new LinkedMultiValueMap<>();
+
+        body.add("grant_type", "authorization_code");
+        body.add("code", code);
+        body.add("client_id", clientId);
+        body.add("client_secret", clientSecret);
+        body.add("redirect_uri", redirectUri);
+
+        HttpEntity<MultiValueMap<String, String>> request =
+                new HttpEntity<>(body, headers);
+
+        return restTemplate.postForObject(
+                tokenUrl,
+                request,
+                LinkedInTokenResponse.class
         );
     }
 }

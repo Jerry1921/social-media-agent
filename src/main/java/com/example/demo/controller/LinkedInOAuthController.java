@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.LinkedInTokenResponse;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.demo.entity.OAuthState;
@@ -46,16 +47,19 @@ public class LinkedInOAuthController {
             @RequestParam String state
     ) {
 
+        // 1. Find the OAuth state
         OAuthState oauthState =
                 oauthStateRepository.findByState(state)
                         .orElse(null);
 
+        // 2. Validate state
         if (oauthState == null) {
             return ResponseEntity
                     .status(401)
                     .body("Invalid OAuth state");
         }
 
+        // 3. Check expiration
         if (oauthState.getExpiresAt()
                 .isBefore(LocalDateTime.now())) {
 
@@ -66,13 +70,19 @@ public class LinkedInOAuthController {
                     .body("OAuth state has expired");
         }
 
+        // 4. Get the user who started the OAuth process
         String userEmail = oauthState.getUserEmail();
 
-        // State can only be used once
+        // 5. State can only be used once
         oauthStateRepository.deleteByState(state);
 
+        // 6. Exchange authorization code for LinkedIn access token
+        LinkedInTokenResponse tokenResponse =
+                linkedInOAuthService.exchangeCodeForToken(code);
+
+        // 7. Don't return the token to the browser
         return ResponseEntity.ok(
-                "OAuth callback received for: " + userEmail
+                "LinkedIn connected successfully for: " + userEmail
         );
     }
-}
+    }
