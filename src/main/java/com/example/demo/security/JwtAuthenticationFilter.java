@@ -66,7 +66,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
 
         } catch (Exception e) {
-            // Invalid token — don't authenticate the request
+            e.printStackTrace();
         }
 
         filterChain.doFilter(request, response);

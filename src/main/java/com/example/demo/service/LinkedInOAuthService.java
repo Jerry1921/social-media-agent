@@ -7,6 +7,12 @@ import com.example.demo.repository.OAuthStateRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
+
+import java.util.Map;
+
 import com.example.demo.dto.LinkedInTokenResponse;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -70,6 +76,45 @@ public class LinkedInOAuthService {
         connection.setUpdatedAt(LocalDateTime.now());
 
         linkedInConnectionRepository.save(connection);
+    }
+
+    public String getLinkedInMemberId(String userEmail) {
+
+        LinkedInConnection connection =
+                linkedInConnectionRepository
+                        .findByUserEmail(userEmail)
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "LinkedIn account is not connected"
+                                )
+                        );
+
+        RestTemplate restTemplate = new RestTemplate();
+
+        HttpHeaders headers = new HttpHeaders();
+
+        headers.setBearerAuth(connection.getAccessToken());
+
+        HttpEntity<Void> request =
+                new HttpEntity<>(headers);
+
+        ResponseEntity<Map> response =
+                restTemplate.exchange(
+                        "https://api.linkedin.com/v2/userinfo",
+                        HttpMethod.GET,
+                        request,
+                        Map.class
+                );
+
+        Map body = response.getBody();
+
+        if (body == null || body.get("sub") == null) {
+            throw new RuntimeException(
+                    "Could not retrieve LinkedIn member ID"
+            );
+        }
+
+        return body.get("sub").toString();
     }
 
     public String createAuthorizationUrl(String userEmail) {
