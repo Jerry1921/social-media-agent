@@ -6,6 +6,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
+
 @RestController
 @RequestMapping("/api/linkedin")
 public class LinkedInPostController {
@@ -32,6 +37,26 @@ public class LinkedInPostController {
                         userEmail,
                         request.getContent()
                 );
+
+        return ResponseEntity.ok(result);
+    }
+
+    @PostMapping(
+            value = "/posts/image",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+    public ResponseEntity<String> createImagePost(
+            Authentication authentication,
+            @RequestParam("content") String content,
+            @RequestParam("image") MultipartFile image
+    ) {
+        String userEmail = authentication.getName();
+
+        String result = linkedInPostService.createImagePost(
+                userEmail,
+                content,
+                image
+        );
 
         return ResponseEntity.ok(result);
     }

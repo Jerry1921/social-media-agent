@@ -66,6 +66,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
 
         } catch (Exception e) {
+            System.out.println("JWT Authentication Error: " + e.getMessage());
+            e.printStackTrace();
             // Invalid token — don't authenticate the request
         }
 

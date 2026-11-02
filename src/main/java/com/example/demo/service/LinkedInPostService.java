@@ -219,4 +219,88 @@ public class LinkedInPostService {
             );
         }
     }
+
+    public String createImagePost(
+            String userEmail,
+            String content,
+            MultipartFile image
+    ) {
+        LinkedInConnection connection =
+                linkedInConnectionRepository
+                        .findByUserEmail(userEmail)
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "LinkedIn account is not connected"
+                                )
+                        );
+
+        String accessToken = connection.getAccessToken();
+
+        // Step 1: Retrieve the LinkedIn member ID
+        RestTemplate restTemplate = new RestTemplate();
+
+        HttpHeaders userInfoHeaders = new HttpHeaders();
+        userInfoHeaders.setBearerAuth(accessToken);
+
+        ResponseEntity<Map> userInfoResponse =
+                restTemplate.exchange(
+                        "https://api.linkedin.com/v2/userinfo",
+                        HttpMethod.GET,
+                        new HttpEntity<>(userInfoHeaders),
+                        Map.class
+                );
+
+        Map userInfo = userInfoResponse.getBody();
+
+        if (userInfo == null || userInfo.get("sub") == null) {
+            throw new RuntimeException(
+                    "Could not retrieve LinkedIn member ID"
+            );
+        }
+
+        String memberId = userInfo.get("sub").toString();
+
+        // Step 2: Initialize the image upload
+        Map<String, String> uploadDetails =
+                initializeImageUpload(accessToken, memberId);
+
+        // Step 3: Upload the actual image
+        uploadImage(uploadDetails.get("uploadUrl"), image);
+
+        String imageUrn = uploadDetails.get("imageUrn");
+
+        // Step 4: Create the LinkedIn post
+        Map<String, Object> media = Map.of(
+                "id", imageUrn
+        );
+
+        Map<String, Object> post = new HashMap<>();
+        post.put("author", "urn:li:person:" + memberId);
+        post.put("commentary", content);
+        post.put("visibility", "PUBLIC");
+        post.put("distribution", Map.of(
+                "feedDistribution", "MAIN_FEED",
+                "targetEntities", new String[]{},
+                "thirdPartyDistributionChannels", new String[]{}
+        ));
+        post.put("content", Map.of("media", media));
+        post.put("lifecycleState", "PUBLISHED");
+        post.put("isReshareDisabledByAuthor", false);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(accessToken);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("LinkedIn-Version", "202601");
+        headers.set("X-Restli-Protocol-Version", "2.0.0");
+
+        ResponseEntity<String> response =
+                restTemplate.exchange(
+                        "https://api.linkedin.com/rest/posts",
+                        HttpMethod.POST,
+                        new HttpEntity<>(post, headers),
+                        String.class
+                );
+
+        return response.getBody();
+    }
 }
