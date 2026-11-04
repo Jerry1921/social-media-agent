@@ -54,4 +54,20 @@ public class SocialPostService {
                 new RuntimeException("Post not found")
         );
     }
+
+    public SocialPost createDraft(
+            String userEmail,
+            String content,
+            String imagePath
+    ) {
+
+        SocialPost post = SocialPost.builder()
+                .userEmail(userEmail)
+                .content(content)
+                .imagePath(imagePath)
+                .status(SocialPostStatus.DRAFT)
+                .build();
+
+        return socialPostRepository.save(post);
+    }
 }
