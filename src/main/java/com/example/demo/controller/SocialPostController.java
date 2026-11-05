@@ -104,4 +104,20 @@ public class SocialPostController {
 
         return ResponseEntity.ok(post);
     }
+
+    @PatchMapping("/{postId}/approve")
+    public ResponseEntity<SocialPost> approveDraft(
+            Authentication authentication,
+            @PathVariable Long postId
+    ) {
+
+        String userEmail = authentication.getName();
+
+        SocialPost post = socialPostService.approveDraft(
+                postId,
+                userEmail
+        );
+
+        return ResponseEntity.ok(post);
+    }
 }

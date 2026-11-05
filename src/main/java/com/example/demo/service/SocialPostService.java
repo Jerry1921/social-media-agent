@@ -6,6 +6,7 @@ import com.example.demo.repository.SocialPostRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -67,6 +68,27 @@ public class SocialPostService {
                 .imagePath(imagePath)
                 .status(SocialPostStatus.DRAFT)
                 .build();
+
+        return socialPostRepository.save(post);
+    }
+
+    @Transactional
+    public SocialPost approveDraft(Long postId, String userEmail) {
+
+        SocialPost post = socialPostRepository
+                .findByIdAndUserEmail(postId, userEmail)
+                .orElseThrow(() ->
+                        new RuntimeException("Post not found")
+                );
+
+        if (post.getStatus() != SocialPostStatus.DRAFT) {
+            throw new IllegalStateException(
+                    "Only draft posts can be approved"
+            );
+        }
+
+        post.setStatus(SocialPostStatus.APPROVED);
+        post.setApprovedAt(LocalDateTime.now());
 
         return socialPostRepository.save(post);
     }
